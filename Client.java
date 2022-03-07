@@ -1,4 +1,5 @@
 /**
+ Group 8
  // Yang Xu 500890631
  // Ruoling Yu 500976267
  // Xinyu Ma 500943173
@@ -60,9 +61,8 @@ public class Client
                 TCP(address, port);
             }
             catch (ArrayIndexOutOfBoundsException e) { JOptionPane.showMessageDialog(frame, "Invalid Server Detail"); }
-            catch (IOException e) { JOptionPane.showMessageDialog(frame, "Connection Failed"); }
             catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
-
+            catch (IOException e) { JOptionPane.showMessageDialog(frame, "Connection Failed"); }
         });
 
         // Listener for UDP button
@@ -77,9 +77,8 @@ public class Client
                 UDP(address, port);
             }
             catch (ArrayIndexOutOfBoundsException e) { JOptionPane.showMessageDialog(frame, "Invalid Server Detail"); }
-            catch (IOException e) { JOptionPane.showMessageDialog(frame, "Connection Failed"); }
             catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
-
+            catch (IOException e) { JOptionPane.showMessageDialog(frame, "Connection Failed"); }
         });
     }
 
@@ -97,14 +96,13 @@ public class Client
         Label.setFont(new Font(Font.SERIF, Font.PLAIN, 20));
         TCP.add(Label);
 
-        JTextField Message = new JTextField(30);
+        JTextField Message = new JTextField(15);
         TCP.add(Message);
 
         JButton SubmitButton = new JButton("Submit");
         TCP.add(SubmitButton);
 
         Back(TCP);  // add back to menu button
-
         cl.show(Layer,"TCP");
 
         SubmitButton.addActionListener(actionEvent ->
@@ -115,21 +113,20 @@ public class Client
                 BufferedWriter msg_out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                 msg_out.write(Message.getText() + "\n");
                 msg_out.flush();
-                msg_out.close();
 
                 // Read from server
                 BufferedReader msg_in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 String msg = msg_in.readLine();
-                msg_in.close();
 
-                //socket.close();
+                msg_in.close();
+                socket.close();
                 JOptionPane.showMessageDialog(frame, msg);
             }
-            catch (Exception e)
+            catch (Exception e) // if socket has been reset -> retry close socket and back to Connect Layer
             {
-                //JOptionPane.showMessageDialog(frame, "Socket Closed");
-                //cl.show(Layer,"Connect");
-                e.printStackTrace();
+                JOptionPane.showMessageDialog(frame, "Unexpected Socket Failure, Back to Connect");
+                try { socket.close(); } catch (IOException ex) { ex.printStackTrace(); }
+                cl.show(Layer,"Connect");
             }
         });
     }
@@ -144,7 +141,7 @@ public class Client
         Label.setFont(new Font(Font.SERIF, Font.PLAIN, 20));
         UDP.add(Label);
 
-        JTextField Message = new JTextField(30);
+        JTextField Message = new JTextField(15);
         UDP.add(Message);
 
         JButton SubmitButton = new JButton("Submit");
@@ -157,7 +154,7 @@ public class Client
         {
             try
             {
-                byte[] msg_in = new byte[32];
+                byte[] msg_in = new byte[16];
                 byte[] msg_out;
 
                 // Create client socket
@@ -183,7 +180,8 @@ public class Client
             }
             catch (Exception e)
             {
-                JOptionPane.showMessageDialog(frame, "Unknown Error");
+                JOptionPane.showMessageDialog(frame, "Unknown Error, Back to Connect");
+                cl.show(Layer,"Connect");
             }
 
         });

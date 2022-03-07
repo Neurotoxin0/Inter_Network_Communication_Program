@@ -1,10 +1,11 @@
 /**
+ Group 8
  // Yang Xu 500890631
  // Ruoling Yu 500976267
  // Xinyu Ma 500943173
  // Vince De Vera 500550779
  // Raynor Elgie 500964140
-**/
+ **/
 
 import java.awt.*;
 import java.io.*;
@@ -57,12 +58,12 @@ public class Server
                 int port = Integer.parseInt(ServerDetail.getText());
                 TCP(port);
             }
-            catch (IOException e)
+            catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
+            catch (IOException e)   // nearly impossible: failed to launch server(start socket)
             {
                 JOptionPane.showMessageDialog(frame, "IO Exception");
                 e.printStackTrace();
             }
-            catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
         });
 
         // Listener for UDP button
@@ -73,12 +74,12 @@ public class Server
                 int port = Integer.parseInt(ServerDetail.getText());
                 UDP(port);
             }
+            catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
             catch (IOException e)
             {
                 JOptionPane.showMessageDialog(frame, "IO Exception");
                 e.printStackTrace();
             }
-            catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
         });
     }
 
@@ -107,12 +108,12 @@ public class Server
 
             // Get request & get time
             BufferedReader msg_in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String time = get_time(msg_in.readLine());  // get time / date / error msg
+            String time = get_time(msg_in.readLine());  // get time/date/error msg
 
             // Send msg
             DataOutputStream msg_out = new DataOutputStream(connection.getOutputStream());
             msg_out.writeBytes(time + "\n");
-            //msg_out.close();
+            msg_out.close();
             JOptionPane.showMessageDialog(frame,"Message sent: " + time);
         }
     }

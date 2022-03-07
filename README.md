@@ -2,4 +2,4 @@
 
 ## Known bug:
 + server side: using while loop cause the program un-interruptable
-+ client/server side - tcp part: socket closed when trying to send msg.
++ client/server side - tcp part: socket closed when client trying to send the msg.

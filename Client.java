@@ -84,10 +84,6 @@ public class Client
 
     private void TCP(String address, int port) throws IOException, IllegalArgumentException // throw exceptions to upper layer for processing
     {
-        // Open socket
-        Socket socket = new Socket(address, port);
-        JOptionPane.showMessageDialog(frame, "Server Connected: " + address + ":" + port);
-
         // TCP panel
         JPanel TCP = new JPanel();
         Layer.add(TCP, "TCP");
@@ -107,8 +103,14 @@ public class Client
 
         SubmitButton.addActionListener(actionEvent ->
         {
+            Socket socket = null;
+
             try
             {
+                // Open socket
+                socket = new Socket(address, port);
+                JOptionPane.showMessageDialog(frame, "Server Connected: " + address + ":" + port);
+
                 // Create out stream & send msg
                 BufferedWriter msg_out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                 msg_out.write(Message.getText() + "\n");

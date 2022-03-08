@@ -93,10 +93,10 @@ public class Server
         JPanel TCP = new JPanel();
         Layer.add(TCP, "TCP");
 
-        JButton Break = new JButton("Break");
-        TCP.add(Break);
+        JLabel Label = new JLabel("127.0.0.1:" + port);
+        Label.setFont(new Font(Font.SERIF, Font.BOLD, 24));
+        TCP.add(Label);
 
-        Back(TCP);  // add back to menu button
         cl.show(Layer,"TCP");
 
         while(true)
@@ -131,10 +131,10 @@ public class Server
         JPanel UDP = new JPanel();
         Layer.add(UDP, "UDP");
 
-        JButton Break = new JButton("Break");
-        UDP.add(Break);
+        JLabel Label = new JLabel("127.0.0.1:" + port);
+        Label.setFont(new Font(Font.SERIF, Font.BOLD, 24));
+        UDP.add(Label);
 
-        Back(UDP);
         cl.show(Layer,"UDP");
 
         while(true)
@@ -175,14 +175,5 @@ public class Server
             return date;
         }
         else { return "Invalid Format"; }
-    }
-
-    private void Back(JPanel Panel)
-    {
-        JButton Back = new JButton("Back");
-        Back.setFont(new Font(Font.SERIF, Font.BOLD, 18));
-        Panel.add(Back);
-
-        Back.addActionListener(actionEvent -> { cl.show(Layer,"Server"); });
     }
 }

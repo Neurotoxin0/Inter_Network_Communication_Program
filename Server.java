@@ -97,25 +97,38 @@ public class Server
         Label.setFont(new Font(Font.SERIF, Font.BOLD, 24));
         TCP.add(Label);
 
+        JTextArea textArea = new JTextArea();
+        //textArea.setBounds();  
+        JScrollPane pane = new JScrollPane(textArea);
+        pane.setPreferredSize(new Dimension(450, 110));
+        TCP.add(pane);
+        
         cl.show(Layer,"TCP");
 
-        while(true)
-        {
-            // Waiting connection & output client info
-            Socket connection = socket.accept();
-            SocketAddress client_address = connection.getRemoteSocketAddress();
-            JOptionPane.showMessageDialog(frame,"Client Connected - " + client_address);
+        TCP.repaint();
+        
 
-            // Get request & get time
-            BufferedReader msg_in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String time = get_time(msg_in.readLine());  // get time/date/error msg
+        new Thread() {
+            public void run() {
+              try {
+                while (true) {
+                    Socket connection = socket.accept();
+                    SocketAddress client_address = connection.getRemoteSocketAddress();
+                    textArea.append("Client connected: " + client_address + "\n");
+                    BufferedReader msg_in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
-            // Send msg
-            DataOutputStream msg_out = new DataOutputStream(connection.getOutputStream());
-            msg_out.writeBytes(time + "\n");
-            msg_out.close();
-            JOptionPane.showMessageDialog(frame,"Message sent: " + time);
-        }
+                    String time = get_time(msg_in.readLine());  // get time/date/error msg
+                    // Send msg
+                    DataOutputStream msg_out = new DataOutputStream(connection.getOutputStream());
+                    msg_out.writeBytes(time + "\n");
+                    textArea.append("Message Sent: " + time + "\n");
+                }
+              } catch(IOException e) {
+                e.printStackTrace();
+              }
+            }
+        }.start();
+
     }
 
     private void UDP(int port) throws IOException, IllegalArgumentException

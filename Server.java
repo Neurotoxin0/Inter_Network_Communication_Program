@@ -93,29 +93,42 @@ public class Server
         JPanel TCP = new JPanel();
         Layer.add(TCP, "TCP");
 
-        JLabel Label = new JLabel("127.0.0.1:" + port);
+        JLabel Label = new JLabel("Serving on " + port);
         Label.setFont(new Font(Font.SERIF, Font.BOLD, 24));
         TCP.add(Label);
 
+        JTextArea textArea = new JTextArea();
+        //textArea.setBounds();  
+        JScrollPane pane = new JScrollPane(textArea);
+        pane.setPreferredSize(new Dimension(450, 110));
+        TCP.add(pane);
+        
         cl.show(Layer,"TCP");
 
-        while(true)
-        {
-            // Waiting connection & output client info
-            Socket connection = socket.accept();
-            SocketAddress client_address = connection.getRemoteSocketAddress();
-            JOptionPane.showMessageDialog(frame,"Client Connected - " + client_address);
+        TCP.repaint();
+        
 
-            // Get request & get time
-            BufferedReader msg_in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String time = get_time(msg_in.readLine());  // get time/date/error msg
+        new Thread() {
+            public void run() {
+              try {
+                while (true) {
+                    Socket connection = socket.accept();
+                    SocketAddress client_address = connection.getRemoteSocketAddress();
+                    textArea.append("Client connected: " + client_address + "\n");
+                    BufferedReader msg_in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
-            // Send msg
-            DataOutputStream msg_out = new DataOutputStream(connection.getOutputStream());
-            msg_out.writeBytes(time + "\n");
-            msg_out.close();
-            JOptionPane.showMessageDialog(frame,"Message sent: " + time);
-        }
+                    String time = get_time(msg_in.readLine());  // get time/date/error msg
+                    // Send msg
+                    DataOutputStream msg_out = new DataOutputStream(connection.getOutputStream());
+                    msg_out.writeBytes(time + "\n");
+                    textArea.append("Message Sent: " + time + "\n");
+                }
+              } catch(IOException e) {
+                e.printStackTrace();
+              }
+            }
+        }.start();
+
     }
 
     private void UDP(int port) throws IOException, IllegalArgumentException
@@ -131,33 +144,49 @@ public class Server
         JPanel UDP = new JPanel();
         Layer.add(UDP, "UDP");
 
-        JLabel Label = new JLabel("127.0.0.1:" + port);
+        JLabel Label = new JLabel("Serving on " + port);
         Label.setFont(new Font(Font.SERIF, Font.BOLD, 24));
         UDP.add(Label);
 
         cl.show(Layer,"UDP");
 
-        while(true)
-        {
-            // Create incoming datagram & await receiving
-            DatagramPacket datagram = new DatagramPacket(msg_in, msg_in.length);
-            socket.receive(datagram);
+		JTextArea textArea = new JTextArea();
+        //textArea.setBounds();  
+        JScrollPane pane = new JScrollPane(textArea);
+        pane.setPreferredSize(new Dimension(450, 110));
+        UDP.add(pane);
+        
+        cl.show(Layer,"UDP");
 
-            // Output client info & received message
-            InetAddress client_address = datagram.getAddress();
-            int client_port = datagram.getPort();
-            String client_msg = new String(datagram.getData()).trim();
-            JOptionPane.showMessageDialog(frame,"Client Connected - " + client_address + ":" + client_port + "\nReceived message: " + client_msg);
+        UDP.repaint();
+        
 
-            // Get time & process msg_out
-            String time = get_time(client_msg);
-            msg_out = (time + "\n").getBytes();
+        new Thread() {
+            public void run() {
+			  byte[] msg_out;
+              try {
+                while (true) {
+                    DatagramPacket datagram = new DatagramPacket(msg_in, msg_in.length);
+					socket.receive(datagram);
+					InetAddress client_address = datagram.getAddress();
+					int client_port = datagram.getPort();
+					String client_msg = new String(datagram.getData()).trim();
+                    textArea.append("Client connected: " + client_address + "\n");
+                    
+					String time = get_time(client_msg);
+					msg_out = (time + "\n").getBytes();
 
-            // Create out datagram & send msg
-            DatagramPacket packet_out = new DatagramPacket(msg_out, msg_out.length, client_address, client_port);
-            socket.send(packet_out);
-            JOptionPane.showMessageDialog(frame,"Message sent: " + time);
-        }
+					// Create out datagram & send msg
+					DatagramPacket packet_out = new DatagramPacket(msg_out, msg_out.length, client_address, client_port);
+					socket.send(packet_out);
+					
+                    textArea.append("Message Sent: " + time + "\n");
+                }
+              } catch(IOException e) {
+                e.printStackTrace();
+              }
+            }
+        }.start();
     }
 
     private String get_time(String format)

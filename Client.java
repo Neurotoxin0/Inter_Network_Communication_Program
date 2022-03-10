@@ -98,6 +98,14 @@ public class Client
         JButton SubmitButton = new JButton("Submit");
         TCP.add(SubmitButton);
 
+		JTextArea textArea = new JTextArea();
+        //textArea.setBounds();  
+        JScrollPane pane = new JScrollPane(textArea);
+        pane.setPreferredSize(new Dimension(450, 110));
+        TCP.add(pane);
+
+        TCP.repaint();
+
         Back(TCP);  // add back to menu button
         cl.show(Layer,"TCP");
 
@@ -109,20 +117,23 @@ public class Client
             {
                 // Open socket
                 socket = new Socket(address, port);
-                JOptionPane.showMessageDialog(frame, "Server Connected: " + address + ":" + port);
-
+                
+				
                 // Create out stream & send msg
                 BufferedWriter msg_out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                 msg_out.write(Message.getText() + "\n");
                 msg_out.flush();
-
+				textArea.append("Packet sent to: " + address + ":"  + port + "; with the message: " + Message.getText() + "\n");
+				
                 // Read from server
                 BufferedReader msg_in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 String msg = msg_in.readLine();
-
+				
+				textArea.append("Recieved: " + msg + "\n");
+				
                 msg_in.close();
                 socket.close();
-                JOptionPane.showMessageDialog(frame, msg);
+                
             }
             catch (Exception e) // if socket has been reset -> retry close socket and back to Connect Layer
             {
@@ -149,6 +160,14 @@ public class Client
         JButton SubmitButton = new JButton("Submit");
         UDP.add(SubmitButton);
 
+		JTextArea textArea = new JTextArea();
+        //textArea.setBounds();  
+        JScrollPane pane = new JScrollPane(textArea);
+        pane.setPreferredSize(new Dimension(450, 110));
+        UDP.add(pane);
+
+        UDP.repaint();
+
         Back(UDP);
         cl.show(Layer,"UDP");
 
@@ -169,7 +188,7 @@ public class Client
                 // Create out datagram & send hello msg
                 DatagramPacket packet_out = new DatagramPacket(msg_out, msg_out.length, address, port);
                 socket.send(packet_out);
-                JOptionPane.showMessageDialog(frame,"Packet sent to: " + address + ":"  + port + "; with the message: " + msg);
+				textArea.append("Packet sent to: " + address + ":"  + port + "; with the message: " + msg + "\n");
 
                 // Read from server
                 DatagramPacket packet_in = new DatagramPacket(msg_in, msg_in.length);
@@ -178,7 +197,8 @@ public class Client
 
                 // Close socket
                 socket.close();
-                JOptionPane.showMessageDialog(frame, msg);
+				textArea.append("Recieved: " + msg + "\n");
+                //JOptionPane.showMessageDialog(frame, msg);
             }
             catch (Exception e)
             {

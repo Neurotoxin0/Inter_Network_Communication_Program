@@ -103,7 +103,7 @@ public class Server
 
         JTextArea textArea = new JTextArea();
         JScrollPane pane = new JScrollPane(textArea);
-        pane.setPreferredSize(new Dimension(450, 200));
+        pane.setPreferredSize(new Dimension(450, 250));
         TCP.add(pane);
 
         cl.show(Layer,"TCP");
@@ -166,7 +166,7 @@ public class Server
 
 		JTextArea textArea = new JTextArea();
         JScrollPane pane = new JScrollPane(textArea);
-        pane.setPreferredSize(new Dimension(450, 200));
+        pane.setPreferredSize(new Dimension(450, 250));
         UDP.add(pane);
         
         cl.show(Layer,"UDP");
@@ -206,7 +206,6 @@ public class Server
             }
         }.start();
     }
-
 
     // Add "Back to Menu" Button
     private void Back(JPanel Panel, ServerSocket TCP_Socket, DatagramSocket UDP_Socket)

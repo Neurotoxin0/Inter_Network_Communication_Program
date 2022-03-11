@@ -49,6 +49,8 @@ public class Server
         Server.add(UDPServerButton);
 
         cl.show(Layer,"Server");
+		
+		
 
         // Listener for TCP button
         TCPServerButton.addActionListener(actionEvent ->
@@ -96,13 +98,15 @@ public class Server
         JLabel Label = new JLabel("Serving on port: " + port);
         Label.setFont(new Font(Font.SERIF, Font.BOLD, 24));
         TCP.add(Label);
-
+		TBack(TCP, socket);
         JTextArea textArea = new JTextArea();
         //textArea.setBounds();  
         JScrollPane pane = new JScrollPane(textArea);
         pane.setPreferredSize(new Dimension(450, 110));
         TCP.add(pane);
         
+		
+		
         cl.show(Layer,"TCP");
 
         TCP.repaint();
@@ -155,7 +159,7 @@ public class Server
         UDP.add(Label);
 
         cl.show(Layer,"UDP");
-
+		UBack(UDP, socket);
 		JTextArea textArea = new JTextArea();
         //textArea.setBounds();  
         JScrollPane pane = new JScrollPane(textArea);
@@ -166,6 +170,7 @@ public class Server
 
         UDP.repaint();
         
+		
 
         new Thread()
         {
@@ -199,6 +204,35 @@ public class Server
               catch(IOException e) { e.printStackTrace(); }
             }
         }.start();
+    }
+
+	// Add "Back to Menu" Button
+    private void TBack(JPanel Panel, ServerSocket socket)
+    {
+        JButton Back = new JButton("Back");
+        Back.setFont(new Font(Font.SERIF, Font.BOLD, 18));
+        Panel.add(Back);
+		
+		try{
+		socket.close();
+		}catch(Exception e){
+			
+		}
+        Back.addActionListener(actionEvent -> { cl.show(Layer,"Server"); });
+
+    }
+
+	// Add "Back to Menu" Button
+    private void UBack(JPanel Panel, DatagramSocket socket)
+    {
+        JButton Back = new JButton("Back");
+        Back.setFont(new Font(Font.SERIF, Font.BOLD, 18));
+        Panel.add(Back);
+
+		socket.close();
+
+        Back.addActionListener(actionEvent -> { cl.show(Layer,"Server"); });
+
     }
 
     private String get_time(String format)

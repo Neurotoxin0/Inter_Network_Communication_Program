@@ -118,18 +118,18 @@ public class Server
                 {
                     Socket connection = socket.accept();
                     SocketAddress client_address = connection.getRemoteSocketAddress();
-                    textArea.append("\n--------------------------------------------------\n");
+                    textArea.append("--------------------------------------------------\n");
                     textArea.append("Client connected: " + client_address + "\n");
                     BufferedReader msg_in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                     String client_msg = msg_in.readLine();
-                    textArea.append("Message: " + client_msg + "\n");
+                    textArea.append("Message Received: " + client_msg + "\n");
 
                     String time = get_time(client_msg);  // get time/date/error msg
                     // Send msg
                     DataOutputStream msg_out = new DataOutputStream(connection.getOutputStream());
                     msg_out.writeBytes(time + "\n");
                     textArea.append("Message Sent: " + time + "\n");
-                    textArea.append("\n--------------------------------------------------\n");
+                    textArea.append("--------------------------------------------------\n");
                 }
               }
               catch(IOException e) { e.printStackTrace(); }
@@ -182,9 +182,9 @@ public class Server
 					InetAddress client_address = datagram.getAddress();
 					int client_port = datagram.getPort();
 					String client_msg = new String(datagram.getData()).trim();
-                    textArea.append("\n--------------------------------------------------\n");
+                    textArea.append("--------------------------------------------------\n");
                     textArea.append("Client connected: " + client_address + ":" + client_port + "\n");
-                    textArea.append("Message: " + client_msg + "\n");
+                    textArea.append("Message Received: " + client_msg + "\n");
 
 					String time = get_time(client_msg);
 					msg_out = (time + "\n").getBytes();
@@ -193,7 +193,7 @@ public class Server
 					DatagramPacket packet_out = new DatagramPacket(msg_out, msg_out.length, client_address, client_port);
 					socket.send(packet_out);
                     textArea.append("Message Sent: " + time + "\n");
-                    textArea.append("\n--------------------------------------------------\n");
+                    textArea.append("--------------------------------------------------\n");
                 }
               }
               catch(IOException e) { e.printStackTrace(); }

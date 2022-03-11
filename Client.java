@@ -58,7 +58,7 @@ public class Client
                 String address = raw[0];
                 int port = Integer.parseInt(raw[1]);
 
-                TCP(address, port);
+                ClientMenu(address, port, false);
             }
             catch (ArrayIndexOutOfBoundsException e) { JOptionPane.showMessageDialog(frame, "Invalid Server Detail"); }
             catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
@@ -71,142 +71,15 @@ public class Client
             try
             {
                 String [] raw = split_address_port(ServerDetail.getText());
-                InetAddress address = InetAddress.getByName(raw[0]);
+				String address = raw[0];
+                //InetAddress address = InetAddress.getByName(raw[0]);
                 int port = Integer.parseInt(raw[1]);
 
-                UDP(address, port);
+                ClientMenu(address, port, true);
             }
             catch (ArrayIndexOutOfBoundsException e) { JOptionPane.showMessageDialog(frame, "Invalid Server Detail"); }
             catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
             catch (IOException e) { JOptionPane.showMessageDialog(frame, "Connection Failed"); }
-        });
-    }
-
-    private void TCP(String address, int port) throws IOException, IllegalArgumentException // throw exceptions to upper layer for processing
-    {
-        // TCP panel
-        JPanel TCP = new JPanel();
-        Layer.add(TCP, "TCP");
-
-        JLabel Label = new JLabel("Message");
-        Label.setFont(new Font(Font.SERIF, Font.PLAIN, 20));
-        TCP.add(Label);
-
-        JTextField Message = new JTextField(15);
-        TCP.add(Message);
-
-        JButton SubmitButton = new JButton("Submit");
-        TCP.add(SubmitButton);
-
-		JTextArea textArea = new JTextArea();
-        //textArea.setBounds();  
-        JScrollPane pane = new JScrollPane(textArea);
-        pane.setPreferredSize(new Dimension(450, 110));
-        TCP.add(pane);
-
-        TCP.repaint();
-
-        Back(TCP);  // add back to menu button
-        cl.show(Layer,"TCP");
-
-        SubmitButton.addActionListener(actionEvent ->
-        {
-            Socket socket = null;
-
-            try
-            {
-                // Open socket
-
-				socket = new Socket(address, port);
-				socket.setSoTimeout(2000);
-				
-				// Create out stream & send msg
-				BufferedWriter msg_out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-				msg_out.write(Message.getText() + "\n");
-				msg_out.flush();
-				textArea.append("Packet sent to: " + address + ":"  + port + "; with the message: " + Message.getText() + "\n");
-				
-				// Read from server
-				BufferedReader msg_in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				String msg = msg_in.readLine();
-				
-				textArea.append("Recieved: " + msg + "\n");
-				
-				msg_in.close();
-				socket.close();
-
-            }
-            catch (Exception e) // if socket has been reset -> retry close socket and back to Connect Layer
-            {
-                JOptionPane.showMessageDialog(frame, "Unexpected Socket Failure, Back to Connect");
-                try { socket.close(); } catch (IOException ex) { ex.printStackTrace(); }
-                cl.show(Layer,"Connect");
-            }
-        });
-    }
-
-    private void UDP(InetAddress address, int port) throws IOException, IllegalArgumentException
-    {
-        // UDP panel
-        JPanel UDP = new JPanel();
-        Layer.add(UDP, "UDP");
-
-        JLabel Label = new JLabel("Message");
-        Label.setFont(new Font(Font.SERIF, Font.PLAIN, 20));
-        UDP.add(Label);
-
-        JTextField Message = new JTextField(15);
-        UDP.add(Message);
-
-        JButton SubmitButton = new JButton("Submit");
-        UDP.add(SubmitButton);
-
-		JTextArea textArea = new JTextArea();
-        //textArea.setBounds();  
-        JScrollPane pane = new JScrollPane(textArea);
-        pane.setPreferredSize(new Dimension(450, 110));
-        UDP.add(pane);
-
-        UDP.repaint();
-
-        Back(UDP);
-        cl.show(Layer,"UDP");
-
-        SubmitButton.addActionListener(actionEvent ->
-        {
-            try
-            {
-                byte[] msg_in = new byte[16];
-                byte[] msg_out;
-
-                // Create client socket
-                DatagramSocket socket = new DatagramSocket();
-
-                // Create hello msg
-                String msg = Message.getText() + "\n";
-                msg_out = msg.getBytes();
-
-                // Create out datagram & send hello msg
-                DatagramPacket packet_out = new DatagramPacket(msg_out, msg_out.length, address, port);
-                socket.send(packet_out);
-				textArea.append("Packet sent to: " + address + ":"  + port + "; with the message: " + msg + "\n");
-
-                // Read from server
-                DatagramPacket packet_in = new DatagramPacket(msg_in, msg_in.length);
-                socket.receive(packet_in);
-                msg = new String(packet_in.getData()).trim();
-
-                // Close socket
-                socket.close();
-				textArea.append("Recieved: " + msg + "\n");
-                //JOptionPane.showMessageDialog(frame, msg);
-            }
-            catch (Exception e)
-            {
-                JOptionPane.showMessageDialog(frame, "Unknown Error, Back to Connect");
-                cl.show(Layer,"Connect");
-            }
-
         });
     }
 
@@ -220,5 +93,100 @@ public class Client
         Panel.add(Back);
 
         Back.addActionListener(actionEvent -> { cl.show(Layer,"Connect"); });
+    }
+	
+	
+    private void ClientMenu(String address, int port, boolean udpMode) throws IOException, IllegalArgumentException // throw exceptions to upper layer for processing
+    {
+        // TCP panel
+        JPanel ClientMenu = new JPanel();
+        Layer.add(ClientMenu, "Client");
+
+        JLabel Label = new JLabel("Message");
+        Label.setFont(new Font(Font.SERIF, Font.PLAIN, 20));
+        ClientMenu.add(Label);
+
+        JTextField Message = new JTextField(15);
+        ClientMenu.add(Message);
+
+        JButton SubmitButton = new JButton("Submit");
+        ClientMenu.add(SubmitButton);
+
+		JTextArea textArea = new JTextArea();
+        //textArea.setBounds();  
+        JScrollPane pane = new JScrollPane(textArea);
+        pane.setPreferredSize(new Dimension(450, 110));
+        ClientMenu.add(pane);
+
+        ClientMenu.repaint();
+
+        Back(ClientMenu);  // add back to menu button
+        cl.show(Layer,"Client");
+
+        SubmitButton.addActionListener(actionEvent ->
+        {
+            
+
+            try
+            {
+				if(udpMode){
+					
+					InetAddress iadd = InetAddress.getByName(address);
+					
+					byte[] msg_in = new byte[16];
+					byte[] msg_out;
+
+					// Create client socket
+					DatagramSocket socket = new DatagramSocket();
+					socket.setSoTimeout(2000);
+
+					// Create hello msg
+					String msg = Message.getText() + "\n";
+					msg_out = msg.getBytes();
+
+					// Create out datagram & send hello msg
+					DatagramPacket packet_out = new DatagramPacket(msg_out, msg_out.length, iadd, port);
+					socket.send(packet_out);
+					textArea.append("Packet sent to: " + iadd + ":"  + port + "; with the message: " + msg + "\n");
+
+					// Read from server
+					DatagramPacket packet_in = new DatagramPacket(msg_in, msg_in.length);
+					socket.receive(packet_in);
+					msg = new String(packet_in.getData()).trim();
+
+					// Close socket
+					socket.close();
+					textArea.append("Recieved: " + msg + "\n");
+					//JOptionPane.showMessageDialog(frame, msg);
+				}else{
+					// Open socket
+					
+					Socket socket = null;
+					
+					socket = new Socket(address, port);
+					socket.setSoTimeout(2000);
+					
+					// Create out stream & send msg
+					BufferedWriter msg_out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+					msg_out.write(Message.getText() + "\n");
+					msg_out.flush();
+					textArea.append("Packet sent to: " + address + ":"  + port + "; with the message: " + Message.getText() + "\n");
+					
+					// Read from server
+					BufferedReader msg_in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+					String msg = msg_in.readLine();
+					
+					textArea.append("Recieved: " + msg + "\n");
+					
+					msg_in.close();
+					socket.close();
+				}
+            }
+            catch (Exception e) // if socket has been reset -> retry close socket and back to Connect Layer
+            {
+                JOptionPane.showMessageDialog(frame, "Unexpected Socket Failure");
+                //try { socket.close(); } catch (IOException ex) { ex.printStackTrace(); }
+            }
+        });
     }
 }

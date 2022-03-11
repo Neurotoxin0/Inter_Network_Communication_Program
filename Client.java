@@ -49,20 +49,21 @@ public class Client
 
         cl.show(Layer,"Connect");
 
+
         // Listener for TCP button
         TCPConnectButton.addActionListener(actionEvent ->
         {
             try
             {
                 String [] raw = split_address_port(ServerDetail.getText());
-                String address = raw[0];
+                InetAddress address = InetAddress.getByName(raw[0]);
                 int port = Integer.parseInt(raw[1]);
 
                 ClientMenu(address, port, false);
             }
             catch (ArrayIndexOutOfBoundsException e) { JOptionPane.showMessageDialog(frame, "Invalid Server Detail"); }
-            catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
-            catch (IOException e) { JOptionPane.showMessageDialog(frame, "Connection Failed"); }
+            catch (UnknownHostException e) { JOptionPane.showMessageDialog(frame, "Unknown Host"); }
+            catch (IOException e) { JOptionPane.showMessageDialog(frame, "IO Exception"); e.printStackTrace(); }
         });
 
         // Listener for UDP button
@@ -71,34 +72,18 @@ public class Client
             try
             {
                 String [] raw = split_address_port(ServerDetail.getText());
-				String address = raw[0];
-                //InetAddress address = InetAddress.getByName(raw[0]);
+                InetAddress address = InetAddress.getByName(raw[0]);
                 int port = Integer.parseInt(raw[1]);
 
                 ClientMenu(address, port, true);
             }
             catch (ArrayIndexOutOfBoundsException e) { JOptionPane.showMessageDialog(frame, "Invalid Server Detail"); }
-            catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
-            catch (IOException e) { JOptionPane.showMessageDialog(frame, "Connection Failed"); }
+            catch (UnknownHostException e) { JOptionPane.showMessageDialog(frame, "Unknown Host"); }
+            catch (IOException e) { JOptionPane.showMessageDialog(frame, "IO Exception"); e.printStackTrace(); }
         });
     }
 
-    private String[] split_address_port(String detail) { return detail.split(":"); }
-
-    // Add "Back to Menu" Button
-    private void Back(JPanel Panel)
-    {
-        JButton Back = new JButton("Back");
-        Back.setFont(new Font(Font.SERIF, Font.BOLD, 18));
-        Panel.add(Back);
-
-
-        Back.addActionListener(actionEvent -> { cl.show(Layer,"Connect"); });
-
-    }
-	
-	
-    private void ClientMenu(String address, int port, boolean udpMode) throws IOException, IllegalArgumentException // throw exceptions to upper layer for processing
+    private void ClientMenu(InetAddress address, int port, boolean udpMode) throws IOException, IllegalArgumentException // throw exceptions to upper layer for processing
     {
         // TCP panel
         JPanel ClientMenu = new JPanel();
@@ -115,43 +100,38 @@ public class Client
         ClientMenu.add(SubmitButton);
 
 		JTextArea textArea = new JTextArea();
-        //textArea.setBounds();  
         JScrollPane pane = new JScrollPane(textArea);
-        pane.setPreferredSize(new Dimension(450, 110));
+        pane.setPreferredSize(new Dimension(450, 200));
         ClientMenu.add(pane);
 
-        ClientMenu.repaint();
-
         Back(ClientMenu);  // add back to menu button
+
+        ClientMenu.repaint();
         cl.show(Layer,"Client");
+
 
         SubmitButton.addActionListener(actionEvent ->
         {
-            
-
             try
             {
-
-				if(udpMode){
-					
-					InetAddress iadd = InetAddress.getByName(address);
-					
+				if(udpMode)
+                {
 					byte[] msg_in = new byte[16];
 					byte[] msg_out;
 
 					// Create client socket
 					DatagramSocket socket = new DatagramSocket();
-					socket.setSoTimeout(2000);
+					socket.setSoTimeout(1000);
 
 					// Create hello msg
 					String msg = Message.getText() + "\n";
 					msg_out = msg.getBytes();
 
 					// Create out datagram & send hello msg
-					DatagramPacket packet_out = new DatagramPacket(msg_out, msg_out.length, iadd, port);
+					DatagramPacket packet_out = new DatagramPacket(msg_out, msg_out.length, address, port);
 					socket.send(packet_out);
                     textArea.append("--------------------------------------------------\n");
-					textArea.append("Packet sent to: " + iadd + ":"  + port + "; with the message: " + msg + "\n");
+					textArea.append("Packet sent to: " + address + ":"  + port + "; with the message: " + msg + "\n");
 
 					// Read from server
 					DatagramPacket packet_in = new DatagramPacket(msg_in, msg_in.length);
@@ -160,16 +140,14 @@ public class Client
 
 					// Close socket
 					socket.close();
-					textArea.append("Recieved: " + msg + "\n");
+					textArea.append("Message Received: " + msg + "\n");
                     textArea.append("--------------------------------------------------\n");
-					//JOptionPane.showMessageDialog(frame, msg);
-				}else{
+				}
+                else // TCP mode
+                {
 					// Open socket
-					
-					Socket socket = null;
-					
-					socket = new Socket(address, port);
-					socket.setSoTimeout(2000);
+					Socket socket = new Socket(address, port);
+					socket.setSoTimeout(1000);
 					
 					// Create out stream & send msg
 					BufferedWriter msg_out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
@@ -181,20 +159,35 @@ public class Client
 					// Read from server
 					BufferedReader msg_in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 					String msg = msg_in.readLine();
-					
-					textArea.append("Recieved: " + msg + "\n");
+                    textArea.append("Message Received: " + msg + "\n");
                     textArea.append("--------------------------------------------------\n");
 
 					msg_in.close();
 					socket.close();
 				}
             }
-            catch (Exception e) // if socket has been reset -> retry close socket and back to Connect Layer
+            catch (ArrayIndexOutOfBoundsException e) { throw new ArrayIndexOutOfBoundsException(); }
+            catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
+            catch (SocketException e) { JOptionPane.showMessageDialog(frame, "Server Unreachable"); }
+            catch (SocketTimeoutException e) { JOptionPane.showMessageDialog(frame, "Connection Timeout");}
 
+            catch (Exception e) // if socket has been reset -> retry close socket and back to Connect Layer
             {
-                JOptionPane.showMessageDialog(frame, "Unexpected Socket Failure");
-                //try { socket.close(); } catch (IOException ex) { ex.printStackTrace(); }
+                JOptionPane.showMessageDialog(frame, "Connection Failure");
+                e.printStackTrace();
             }
         });
+    }
+
+    private String[] split_address_port(String detail) { return detail.split(":"); }
+
+    // Add "Back to Menu" Button
+    private void Back(JPanel Panel)
+    {
+        JButton Back = new JButton("Back");
+        Back.setFont(new Font(Font.SERIF, Font.BOLD, 18));
+        Panel.add(Back);
+
+        Back.addActionListener(actionEvent -> { cl.show(Layer,"Connect"); });
     }
 }

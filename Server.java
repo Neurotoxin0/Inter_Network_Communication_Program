@@ -16,7 +16,7 @@ import javax.swing.*;
 
 public class Server
 {
-    private static final JFrame frame = new JFrame("Time Server");;
+    private static final JFrame frame = new JFrame("Time Server");
     private static final JPanel Layer = new JPanel(new CardLayout());
     private final CardLayout cl=(CardLayout)(Layer.getLayout());
 
@@ -50,7 +50,6 @@ public class Server
 
         cl.show(Layer,"Server");
 		
-		
 
         // Listener for TCP button
         TCPServerButton.addActionListener(actionEvent ->
@@ -61,10 +60,11 @@ public class Server
                 TCP(port);
             }
             catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
-            catch (IOException e)   // nearly impossible: failed to launch server(start socket)
+            catch (BindException e) { JOptionPane.showMessageDialog(frame, "Port Already In Use"); }
+            catch (IOException e)
             {
                 JOptionPane.showMessageDialog(frame, "IO Exception");
-                e.printStackTrace();
+                e.printStackTrace();    // debug
             }
         });
 
@@ -77,6 +77,7 @@ public class Server
                 UDP(port);
             }
             catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
+            catch (BindException e) { JOptionPane.showMessageDialog(frame, "Port Already In Use"); }
             catch (IOException e)
             {
                 JOptionPane.showMessageDialog(frame, "IO Exception");
@@ -98,17 +99,14 @@ public class Server
         JLabel Label = new JLabel("Serving on port: " + port);
         Label.setFont(new Font(Font.SERIF, Font.BOLD, 24));
         TCP.add(Label);
-		TBack(TCP, socket);
-        JTextArea textArea = new JTextArea();
-        //textArea.setBounds();  
-        JScrollPane pane = new JScrollPane(textArea);
-        pane.setPreferredSize(new Dimension(450, 110));
-        TCP.add(pane);
-        
-		
-		
-        cl.show(Layer,"TCP");
+		Back(TCP, socket, null); // Back button
 
+        JTextArea textArea = new JTextArea();
+        JScrollPane pane = new JScrollPane(textArea);
+        pane.setPreferredSize(new Dimension(450, 200));
+        TCP.add(pane);
+
+        cl.show(Layer,"TCP");
         TCP.repaint();
         
 
@@ -120,15 +118,20 @@ public class Server
               {
                 while (true)
                 {
+                    // Await connection
                     Socket connection = socket.accept();
                     SocketAddress client_address = connection.getRemoteSocketAddress();
                     textArea.append("--------------------------------------------------\n");
                     textArea.append("Client connected: " + client_address + "\n");
+
+                    // Read inbound msg
                     BufferedReader msg_in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                     String client_msg = msg_in.readLine();
                     textArea.append("Message Received: " + client_msg + "\n");
 
+                    // Get Time / Date / Err msg
                     String time = get_time(client_msg);  // get time/date/error msg
+
                     // Send msg
                     DataOutputStream msg_out = new DataOutputStream(connection.getOutputStream());
                     msg_out.writeBytes(time + "\n");
@@ -136,10 +139,10 @@ public class Server
                     textArea.append("--------------------------------------------------\n");
                 }
               }
+              catch (SocketException ignored) { }
               catch(IOException e) { e.printStackTrace(); }
             }
         }.start();
-
     }
 
     private void UDP(int port) throws IOException, IllegalArgumentException
@@ -159,18 +162,16 @@ public class Server
         UDP.add(Label);
 
         cl.show(Layer,"UDP");
-		UBack(UDP, socket);
+		Back(UDP, null, socket);
+
 		JTextArea textArea = new JTextArea();
-        //textArea.setBounds();  
         JScrollPane pane = new JScrollPane(textArea);
-        pane.setPreferredSize(new Dimension(450, 110));
+        pane.setPreferredSize(new Dimension(450, 200));
         UDP.add(pane);
         
         cl.show(Layer,"UDP");
-
         UDP.repaint();
-        
-		
+
 
         new Thread()
         {
@@ -192,47 +193,38 @@ public class Server
                     textArea.append("Message Received: " + client_msg + "\n");
 
 					String time = get_time(client_msg);
-					msg_out = (time + "\n").getBytes();
+					msg_out = (time).getBytes();
 
-					// Create out datagram & send msg
 					DatagramPacket packet_out = new DatagramPacket(msg_out, msg_out.length, client_address, client_port);
 					socket.send(packet_out);
                     textArea.append("Message Sent: " + time + "\n");
                     textArea.append("--------------------------------------------------\n");
                 }
               }
+              catch (SocketException ignored) { }
               catch(IOException e) { e.printStackTrace(); }
             }
         }.start();
     }
 
-	// Add "Back to Menu" Button
-    private void TBack(JPanel Panel, ServerSocket socket)
-    {
-        JButton Back = new JButton("Back");
-        Back.setFont(new Font(Font.SERIF, Font.BOLD, 18));
-        Panel.add(Back);
-		
-		try{
-		socket.close();
-		}catch(Exception e){
-			
-		}
-        Back.addActionListener(actionEvent -> { cl.show(Layer,"Server"); });
 
-    }
-
-	// Add "Back to Menu" Button
-    private void UBack(JPanel Panel, DatagramSocket socket)
+    // Add "Back to Menu" Button
+    private void Back(JPanel Panel, ServerSocket TCP_Socket, DatagramSocket UDP_Socket)
     {
         JButton Back = new JButton("Back");
         Back.setFont(new Font(Font.SERIF, Font.BOLD, 18));
         Panel.add(Back);
 
-		socket.close();
-
-        Back.addActionListener(actionEvent -> { cl.show(Layer,"Server"); });
-
+        Back.addActionListener(actionEvent ->
+        {
+            try
+            {
+                TCP_Socket.close();
+                UDP_Socket.close();
+            }
+            catch(Exception ignored){ }
+            cl.show(Layer,"Server");
+        });
     }
 
     private String get_time(String format)

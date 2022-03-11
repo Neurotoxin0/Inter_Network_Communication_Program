@@ -93,7 +93,7 @@ public class Server
         JPanel TCP = new JPanel();
         Layer.add(TCP, "TCP");
 
-        JLabel Label = new JLabel("Serving on " + port);
+        JLabel Label = new JLabel("Serving on port: " + port);
         Label.setFont(new Font(Font.SERIF, Font.BOLD, 24));
         TCP.add(Label);
 
@@ -108,24 +108,31 @@ public class Server
         TCP.repaint();
         
 
-        new Thread() {
-            public void run() {
-              try {
-                while (true) {
+        new Thread()
+        {
+            public void run()
+            {
+              try
+              {
+                while (true)
+                {
                     Socket connection = socket.accept();
                     SocketAddress client_address = connection.getRemoteSocketAddress();
+                    textArea.append("\n--------------------------------------------------\n");
                     textArea.append("Client connected: " + client_address + "\n");
                     BufferedReader msg_in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    String client_msg = msg_in.readLine();
+                    textArea.append("Message: " + client_msg + "\n");
 
-                    String time = get_time(msg_in.readLine());  // get time/date/error msg
+                    String time = get_time(client_msg);  // get time/date/error msg
                     // Send msg
                     DataOutputStream msg_out = new DataOutputStream(connection.getOutputStream());
                     msg_out.writeBytes(time + "\n");
                     textArea.append("Message Sent: " + time + "\n");
+                    textArea.append("\n--------------------------------------------------\n");
                 }
-              } catch(IOException e) {
-                e.printStackTrace();
               }
+              catch(IOException e) { e.printStackTrace(); }
             }
         }.start();
 
@@ -134,7 +141,6 @@ public class Server
     private void UDP(int port) throws IOException, IllegalArgumentException
     {
         byte[] msg_in = new byte[16];
-        byte[] msg_out;
 
         // Open socket
         DatagramSocket socket = new DatagramSocket(port);
@@ -144,7 +150,7 @@ public class Server
         JPanel UDP = new JPanel();
         Layer.add(UDP, "UDP");
 
-        JLabel Label = new JLabel("Serving on " + port);
+        JLabel Label = new JLabel("Serving on port: " + port);
         Label.setFont(new Font(Font.SERIF, Font.BOLD, 24));
         UDP.add(Label);
 
@@ -161,30 +167,36 @@ public class Server
         UDP.repaint();
         
 
-        new Thread() {
-            public void run() {
+        new Thread()
+        {
+            public void run()
+            {
 			  byte[] msg_out;
-              try {
-                while (true) {
+
+              try
+              {
+                while (true)
+                {
                     DatagramPacket datagram = new DatagramPacket(msg_in, msg_in.length);
 					socket.receive(datagram);
 					InetAddress client_address = datagram.getAddress();
 					int client_port = datagram.getPort();
 					String client_msg = new String(datagram.getData()).trim();
-                    textArea.append("Client connected: " + client_address + "\n");
-                    
+                    textArea.append("\n--------------------------------------------------\n");
+                    textArea.append("Client connected: " + client_address + ":" + client_port + "\n");
+                    textArea.append("Message: " + client_msg + "\n");
+
 					String time = get_time(client_msg);
 					msg_out = (time + "\n").getBytes();
 
 					// Create out datagram & send msg
 					DatagramPacket packet_out = new DatagramPacket(msg_out, msg_out.length, client_address, client_port);
 					socket.send(packet_out);
-					
                     textArea.append("Message Sent: " + time + "\n");
+                    textArea.append("\n--------------------------------------------------\n");
                 }
-              } catch(IOException e) {
-                e.printStackTrace();
               }
+              catch(IOException e) { e.printStackTrace(); }
             }
         }.start();
     }

@@ -123,6 +123,7 @@ public class Client
                 BufferedWriter msg_out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                 msg_out.write(Message.getText() + "\n");
                 msg_out.flush();
+                textArea.append("\n--------------------------------------------------\n");
 				textArea.append("Packet sent to: " + address + ":"  + port + "; with the message: " + Message.getText() + "\n");
 				
                 // Read from server
@@ -130,15 +131,17 @@ public class Client
                 String msg = msg_in.readLine();
 				
 				textArea.append("Recieved: " + msg + "\n");
-				
+                textArea.append("\n--------------------------------------------------\n");
+
                 msg_in.close();
                 socket.close();
                 
             }
+            catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
             catch (Exception e) // if socket has been reset -> retry close socket and back to Connect Layer
             {
                 JOptionPane.showMessageDialog(frame, "Unexpected Socket Failure, Back to Connect");
-                try { socket.close(); } catch (IOException ex) { ex.printStackTrace(); }
+                try { socket.close(); } catch (IOException ignored) {} // the line is to make sure the socket is closed; if is closed, exception will be caught -> ignored
                 cl.show(Layer,"Connect");
             }
         });
@@ -188,6 +191,7 @@ public class Client
                 // Create out datagram & send hello msg
                 DatagramPacket packet_out = new DatagramPacket(msg_out, msg_out.length, address, port);
                 socket.send(packet_out);
+                textArea.append("\n--------------------------------------------------\n");
 				textArea.append("Packet sent to: " + address + ":"  + port + "; with the message: " + msg + "\n");
 
                 // Read from server
@@ -198,8 +202,10 @@ public class Client
                 // Close socket
                 socket.close();
 				textArea.append("Recieved: " + msg + "\n");
+                textArea.append("\n--------------------------------------------------\n");
                 //JOptionPane.showMessageDialog(frame, msg);
             }
+            catch (IllegalArgumentException e) { JOptionPane.showMessageDialog(frame, "Illegal Port Number"); }
             catch (Exception e)
             {
                 JOptionPane.showMessageDialog(frame, "Unknown Error, Back to Connect");

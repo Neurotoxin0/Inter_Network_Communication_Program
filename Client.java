@@ -116,24 +116,25 @@ public class Client
             try
             {
                 // Open socket
-                socket = new Socket(address, port);
-                
+
+				socket = new Socket(address, port);
+				socket.setSoTimeout(2000);
 				
-                // Create out stream & send msg
-                BufferedWriter msg_out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-                msg_out.write(Message.getText() + "\n");
-                msg_out.flush();
+				// Create out stream & send msg
+				BufferedWriter msg_out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+				msg_out.write(Message.getText() + "\n");
+				msg_out.flush();
 				textArea.append("Packet sent to: " + address + ":"  + port + "; with the message: " + Message.getText() + "\n");
 				
-                // Read from server
-                BufferedReader msg_in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                String msg = msg_in.readLine();
+				// Read from server
+				BufferedReader msg_in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				String msg = msg_in.readLine();
 				
 				textArea.append("Recieved: " + msg + "\n");
 				
-                msg_in.close();
-                socket.close();
-                
+				msg_in.close();
+				socket.close();
+
             }
             catch (Exception e) // if socket has been reset -> retry close socket and back to Connect Layer
             {

@@ -92,7 +92,9 @@ public class Client
         Back.setFont(new Font(Font.SERIF, Font.BOLD, 18));
         Panel.add(Back);
 
+
         Back.addActionListener(actionEvent -> { cl.show(Layer,"Connect"); });
+
     }
 	
 	
@@ -129,6 +131,7 @@ public class Client
 
             try
             {
+
 				if(udpMode){
 					
 					InetAddress iadd = InetAddress.getByName(address);
@@ -183,6 +186,7 @@ public class Client
 				}
             }
             catch (Exception e) // if socket has been reset -> retry close socket and back to Connect Layer
+
             {
                 JOptionPane.showMessageDialog(frame, "Unexpected Socket Failure");
                 //try { socket.close(); } catch (IOException ex) { ex.printStackTrace(); }
